@@ -39,6 +39,7 @@ Plane = [pygame.image.load(os.path.join("Assets/Plane","Plane1.png")),
 Cloud = pygame.image.load(os.path.join("Assets/Other","Cloud.png"))
 Bg = pygame.image.load(os.path.join("Assets/Other","Track.png"))
 
+#configuraçao
 class CLOUD:
     def __init__(self):
         self.x = screen_width + random.randint(800, 1000)
