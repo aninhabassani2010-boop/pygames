@@ -3,12 +3,19 @@ import os
 import random
 pygame.init()
 
-#global constants (width,height)
-screen_height = 600
-screen_width = 1100
+
+screen_height = 500
+screen_width = 990
 screen = pygame.display.set_mode((screen_width, screen_height))
 
-# add the images to the program
+pygame.mixer.init()
+
+
+pygame.mixer.init()
+pygame.mixer.music.load(os.path.join("Assets/Sound", "Fundo.mp3"))
+game_over_sound = pygame.mixer.Sound(os.path.join("Assets/Sound", "Dano.mp3")) 
+pygame.mixer.music.set_volume(0.8)  
+pygame.mixer.music.play(-1)
 
 Running = [pygame.image.load(os.path.join("Assets/Dog","DogRun1.png")), 
            pygame.image.load(os.path.join("Assets/Dog","DogRun2.png"))]
@@ -18,20 +25,19 @@ Jumping = pygame.image.load(os.path.join("Assets/Dog","Dogjump.png"))
 Duking = [pygame.image.load(os.path.join("Assets/Dog","DogDuck1.png")),
           pygame.image.load(os.path.join("Assets/Dog","DogDuck2.png"))]
 
-Obstacle = [pygame.image.load(os.path.join("Assets/Obstacle","Obstacle1.png")), 
-            pygame.image.load(os.path.join("Assets/Obstacle","Obstacle2.png")),
-            pygame.image.load(os.path.join("Assets/Obstacle","Obstacle3.png")),
-            pygame.image.load(os.path.join("Assets/Obstacle","Obstacle4.png")),
-            pygame.image.load(os.path.join("Assets/Obstacle","Obstacle5.png")), 
-            pygame.image.load(os.path.join("Assets/Obstacle","Obstacle5.png"))] 
+B_obstacle = [pygame.image.load(os.path.join("Assets/Obstacle","Obstacle1.png")), 
+              pygame.image.load(os.path.join("Assets/Obstacle","Obstacle2.png")),
+              pygame.image.load(os.path.join("Assets/Obstacle","Obstacle3.png"))] 
+            
+S_obstacle = [pygame.image.load(os.path.join("Assets/Obstacle","Obstacle4.png")),
+              pygame.image.load(os.path.join("Assets/Obstacle","Obstacle5.png")), 
+              pygame.image.load(os.path.join("Assets/Obstacle","Obstacle6.png"))]
 
 Plane = [pygame.image.load(os.path.join("Assets/Plane","Plane1.png")), 
-        pygame.image.load(os.path.join("Assets/Plane", "Plane2.png"))]
+         pygame.image.load(os.path.join("Assets/Plane", "Plane2.png"))]
  
-
 Cloud = pygame.image.load(os.path.join("Assets/Other","Cloud.png"))
-
-Bg = pygame.image.load((os.path.join("Assets/Other","Track.png")))
+Bg = pygame.image.load(os.path.join("Assets/Other","Track.png"))
 
 class CLOUD:
     def __init__(self):
@@ -50,29 +56,29 @@ class CLOUD:
         screen.blit(self.image, (self.x, self.y))
         
 class Dog: 
+    
     x_pos = 82
-    y_pos = 312
+    y_pos = 270
     y_pos_duck = 342
     JUMP_VELOCI = 8.5
     
-    def __init__ (self):
-        
+    def __init__(self):
         self.duck_img = Duking
         self.run_img = Running
         self.jump_img = Jumping
         
-        self.dog_duck= False
-        self.dog_run= True
-        self.dog_jump= False
+        self.dog_duck = False
+        self.dog_run = True
+        self.dog_jump = False
         
-        self.step_index =0
+        self.step_index = 0
         self.jump_veloci = self.JUMP_VELOCI
         self.image = self.run_img[0]
         self.dog_rect = self.image.get_rect()
         self.dog_rect.x = self.x_pos
         self.dog_rect.y = self.y_pos
     
-    def update(self,userinput):
+    def update(self, userinput):
         if self.dog_duck:
             self.duck()
         if self.dog_run:
@@ -80,58 +86,101 @@ class Dog:
         if self.dog_jump:
             self.jump()
       
-        if self.step_index >=10:
-          self.step_index = 0
+        if self.step_index >= 10:
+            self.step_index = 0
           
         if userinput[pygame.K_UP] and not self.dog_jump:      
-            self.dog_duck= False
-            self.dog_run= False
-            self.dog_jump= True
+            self.dog_duck = False
+            self.dog_run = False
+            self.dog_jump = True
         elif userinput[pygame.K_DOWN] and not self.dog_jump:
-            self.dog_duck= True
-            self.dog_run= False
-            self.dog_jump= False
+            self.dog_duck = True
+            self.dog_run = False
+            self.dog_jump = False
         elif not (self.dog_jump or userinput[pygame.K_DOWN]):
-            self.dog_duck= False
-            self.dog_run= True
-            self.dog_jump= False
+            self.dog_duck = False
+            self.dog_run = True
+            self.dog_jump = False
             
     def duck(self):
-        self.image = self.duck_img[self.step_index//5]
+        self.image = self.duck_img[self.step_index // 5]
         self.dog_rect = self.image.get_rect()
         self.dog_rect.x = self.x_pos
         self.dog_rect.y = self.y_pos_duck
         self.step_index += 1
         
     def run(self):
-        self.image = self.run_img[self.step_index//5]
+        self.image = self.run_img[self.step_index // 5]
         self.dog_rect = self.image.get_rect()
         self.dog_rect.x = self.x_pos
         self.dog_rect.y = self.y_pos
         self.step_index += 1
     
     def jump(self):        
-      self.image = self.jump_img
-      if self.dog_jump:
-          self.dog_rect.y-= self.jump_veloci * 4
-          self.jump_veloci -=0.8
-      if self.jump_veloci < - self.JUMP_VELOCI:
-          
-          self.dog_jump = False
-          self.jump_veloci = self.JUMP_VELOCI
+        self.image = self.jump_img
+        if self.dog_jump:
+            self.dog_rect.y -= self.jump_veloci * 4
+            self.jump_veloci -= 0.8
+        if self.jump_veloci < -self.JUMP_VELOCI:
+            self.dog_jump = False
+            self.jump_veloci = self.JUMP_VELOCI
     
     def draw(self, screen):
         screen.blit(self.image, (self.dog_rect.x, self.dog_rect.y))  
 
+class Obstacles:
+    def __init__(self, image, type):
+        self.image = image
+        self.type = type
+        self.rect = self.image[self.type].get_rect()
+        self.rect.x = screen_width
+    
+    def update(self):
+        self.rect.x -= game_speed
+        if self.rect.x < -self.rect.width:
+            obstacles.pop()
+    
+    def draw(self, SCREEN):
+        SCREEN.blit(self.image[self.type], self.rect)
+
+class s_obstacle(Obstacles):
+    def __init__(self, image):
+        self.type = random.randint(0, 2)
+        super().__init__(image, self.type)
+        self.rect.y = 325
+        
+class b_obstacle(Obstacles):
+    def __init__(self, image):
+        self.type = random.randint(0, 2)
+        super().__init__(image, self.type)
+        self.rect.y = 300
+        
+class plane(Obstacles):
+    def __init__(self, image):
+        self.type = 0
+        super().__init__(image, self.type)
+        self.rect.y = 250
+        self.index = 0
+        
+    def draw(self, SCREEN):
+        if self.index >= 9:
+            self.index = 0
+        screen.blit(self.image[self.index // 5], self.rect)
+        self.index += 1
+    
 def main():
-    global game_speed, x_pos_bg, y_pos_bg
+    global game_speed, x_pos_bg, y_pos_bg, obstacles, death_count
     run = True
     clock = pygame.time.Clock()
-    Cloud = CLOUD()
+    cloud = CLOUD()
     player = Dog()
-    game_speed=14
-    x_pos_bg=0
-    y_pos_bg=370
+    game_speed = 17
+    x_pos_bg = 0
+    y_pos_bg = 370
+    obstacles = []
+    death_count = 0
+    score = 0
+    font = pygame.font.Font("Assets/fonts/ScienceGothic-VariableFont_CTRS,slnt,wdth,wght.ttf", 36) 
     
     def background():
         global x_pos_bg, y_pos_bg
@@ -147,18 +196,38 @@ def main():
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run= False
+                run = False
+                
         screen.fill((135, 206, 235))
         
         userinput = pygame.key.get_pressed()
         background()
-        Cloud.draw(screen)
-        Cloud.update()
+        cloud.draw(screen)
+        cloud.update()
         player.draw(screen)
         player.update(userinput)
+        
+        if len(obstacles) == 0:
+            rand_val = random.randint(0, 2)
+            if rand_val == 0:
+                obstacles.append(s_obstacle(S_obstacle))
+            elif rand_val == 1:
+                obstacles.append(b_obstacle(B_obstacle))
+            elif rand_val == 2:
+                obstacles.append(plane(Plane))
+                
+        for obstacle in obstacles:
+            obstacle.draw(screen)
+            obstacle.update()
+            if player.dog_rect.colliderect(obstacle.rect):
+                pygame.mixer.music.stop()          
+                game_over_sound.play()             
+                pygame.time.delay(1500)
+                death_count += 1
+                run = False  
+        
         clock.tick(30)
         pygame.display.update()
 
-
-main()
-
+if __name__ == "__main__":
+    main()
