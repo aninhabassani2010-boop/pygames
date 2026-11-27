@@ -212,7 +212,7 @@ def main():
     clock = pygame.time.Clock()
     cloud = CLOUD()
     player = Dog()
-    game_speed = 21
+    game_speed = 17
     x_pos_bg = 0
     y_pos_bg = 370
     obstacles = []
@@ -269,7 +269,10 @@ def main():
         for obstacle in obstacles[:]:
             obstacle.draw(screen)
             obstacle.update()
-        
+            if game_speed<=28:
+                game_speed = game_speed+0.025
+            else:
+                game_speed= 28
             
             if player.dog_rect.colliderect(obstacle.rect):
                 pygame.mixer.music.stop()          
