@@ -19,7 +19,7 @@ game_over_sound = pygame.mixer.Sound(os.path.join(BASE_DIR, "Assets", "Sound", "
 
 bite_83 = pygame.mixer.Sound(os.path.join(BASE_DIR, "Assets", "Sound", "Mordida.mp3"))
 
-
+victory = pygame.mixer.Sound(os.path.join(BASE_DIR, "Assets", "Sound", "vitoria.mp3"))
 
 pygame.mixer.music.set_volume(0.6)  
 pygame.mixer.music.play(-1)
@@ -29,7 +29,7 @@ Bones = pygame.image.load(os.path.join(BASE_DIR,"Assets/Other","bone.png"))
 
 Running = [pygame.image.load(os.path.join(BASE_DIR,"Assets/Dog","DogRun1.png")), 
            pygame.image.load(os.path.join(BASE_DIR,"Assets/Dog","DogRun2.png"))]
-
+Dead = pygame.image.load(os.path.join(BASE_DIR, "Assets", "Dog", "DogDead.png"))
 Jumping = pygame.image.load(os.path.join(BASE_DIR,"Assets/Dog","Dogjump.png"))
 
 Duking = [pygame.image.load(os.path.join(BASE_DIR,"Assets/Dog","DogDuck1.png")),
@@ -50,6 +50,7 @@ Cloud = pygame.image.load(os.path.join(BASE_DIR,"Assets/Other","Cloud.png"))
 Bg = pygame.image.load(os.path.join(BASE_DIR,"Assets/Other","Track.png"))
 
 #configuraçao
+
 def sky(surface, top_color, bottom_color):
     width, height = surface.get_size()
     pixel_size = 8
@@ -61,12 +62,9 @@ def sky(surface, top_color, bottom_color):
         g = int(top_color[1] + (bottom_color[1] - top_color[1]) * ratio)
         b = int(top_color[2] + (bottom_color[2] - top_color[2]) * ratio)
 
-        pygame.draw.rect(
-            surface,
-            (r, g, b),
-            (0, y, width, pixel_size)
-        )
-
+        pygame.draw.rect(surface, (r, g, b), (0, y, width, pixel_size))
+sky_surface = pygame.Surface((screen_width, screen_height))
+sky(sky_surface, (105, 160, 210), (255, 195, 155))
 class CLOUD:
     def __init__(self):
         self.x = screen_width + random.randint(800, 1000)
@@ -161,7 +159,7 @@ class bones:
             self.image = Bones
             self.rect = self.image.get_rect()
             self.rect.x = screen_width + 350
-            self.rect.y = random.randint(200,400)
+            self.rect.y = random.randint(200,350)
 
         
         def update(self):
@@ -214,7 +212,7 @@ def main():
     clock = pygame.time.Clock()
     cloud = CLOUD()
     player = Dog()
-    game_speed = 23
+    game_speed = 21
     x_pos_bg = 0
     y_pos_bg = 370
     obstacles = []
@@ -223,7 +221,11 @@ def main():
     bone_items= []
     font = pygame.font.Font(None, 40)
     won=False
+    game_over = False
+    victory_font = pygame.font.Font(None, 70)
+    message_font = pygame.font.Font(None, 40)
     obstacles_dodged = 0
+    
     
     
     
@@ -239,11 +241,13 @@ def main():
         x_pos_bg -= game_speed
 
     while run:
+        print("ENTROU NO JOGO")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                print("fechou pelo evento quit")
                 
-        sky(screen,(105, 160, 210),(255, 195, 155))
+        screen.blit(sky_surface, (0, 0))
         
         userinput = pygame.key.get_pressed()
         background()
@@ -271,8 +275,11 @@ def main():
                 pygame.mixer.music.stop()          
                 game_over_sound.play()            
                 pygame.time.delay(1500)               
+                death_count+=1
+                game_over = True
                 run = False  
 
+                
             elif obstacle.rect.x < -obstacle.rect.width:
                 for obstacle in obstacles[:]:
                     obstacles.remove(obstacle)
@@ -290,27 +297,82 @@ def main():
                 bite_83.play()   
                 bone_score += 1
                 bone_items.remove(bone)
+                
 
             elif bone.rect.x < -bone.rect.width:
                 bone_items.remove(bone)
                
-        if bone_score >= 10:
-                        run = False
-                        won = True
+        if bone_score >= 15:
+            pygame.mixer.music.stop()          
+            victory.play()   
+            run = False
+            won = True
+
                      
-        score_text = font.render(f"Ossos: {bone_score}/10",True,(255, 255, 255))
+        score_text = font.render(f"Ossos: {bone_score}/15",True,(255, 255, 255))
         screen.blit(score_text, (screen_width - score_text.get_width() - 20, 20))    
-            
-            
-        clock.tick(30)
         pygame.display.update()
+        clock.tick(30)
+            
+        if won:
+            victory_font = pygame.font.Font(None, 75)
+            message_font = pygame.font.Font(None, 40)
 
+            victory_screen = True
 
-    def menu(deth_cont):
-        run=True
-        while run:
-            screen.fill((255, 255, 255))
-                   
+            while victory_screen==True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        victory_screen = False
 
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            victory_screen = False
+
+                screen.fill((255, 195, 155))
+
+                title = victory_font.render("VOCE VENCEU!", True, (0, 150, 0))
+                message = message_font.render("Bolt conseguiu coletar 15 ossos!", True, (0, 0, 0))
+                score = message_font.render(f"Ossos coletados: {bone_score}", True, (0, 0, 0))
+
+                screen.blit(title, title.get_rect(center=(screen_width // 2, 200)))
+                screen.blit(message, message.get_rect(center=(screen_width // 2, 290)))
+                screen.blit(score, score.get_rect(center=(screen_width // 2, 350)))
+
+                pygame.display.update()
+                clock.tick(30)
+        if game_over:
+            game_over_screen = True
+
+            while game_over_screen:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        game_over_screen = False
+
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            game_over_screen = False
+
+                screen.fill((40, 40, 40))
+                crying_rect =Dead.get_rect()
+                crying_rect.center = (screen_width // 2, 450)
+
+                screen.blit(Dead, crying_rect)
+
+                title = victory_font.render("GAME OVER!", True, (200, 0, 0))
+                message = message_font.render("Perdeu BOBÃO!", True, (255, 255, 255))
+                restart = message_font.render("Pressione ESC para sair", True, (255, 255, 255))
+
+                screen.blit(title, title.get_rect(center=(screen_width // 2, 200)))
+                screen.blit(message, message.get_rect(center=(screen_width // 2, 290)))
+                screen.blit(restart, restart.get_rect(center=(screen_width // 2, 360)))
+
+                pygame.display.update()
+                clock.tick(30)    
+
+        
+    pygame.quit()
+    
 if __name__ == "__main__":
+    
     main()
